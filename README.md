@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # OmniLang Project (2026)
 
 [English](#english) | [Русский](#russian) | [Tiếng Việt](#vietnamese)
@@ -92,9 +91,6 @@ To get started, please check the following documents:
 
 <a name="vietnamese"></a>
 ## 🇻🇳 Tiếng Việt
-=======
-# Dự án OmniLang
->>>>>>> 7d440e8fa8ced9c49c4be7bcddff2fbf26ca4e67
 
 Đây là kho mã nguồn chính thức của **OmniLang** - Ngôn ngữ lập trình hiện đại, đơn giản và mạnh mẽ.
 
