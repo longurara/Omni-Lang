@@ -52,6 +52,63 @@ public:
         throw OmniException("No main() function found");
     }
     
+    // REPL mode: register functions and call __repl__ directly
+    RuntimeValue executeREPL(ProgramAST& program) {
+        // Register functions (don't require main)
+        for (auto& func : program.functions) {
+            functions[func->name] = func.get();
+        }
+        
+        // Call __repl__ if it exists
+        if (functions.count("__repl__")) {
+            return executeFunction(functions["__repl__"], {});
+        }
+        
+        return RuntimeValue(); // Return nil if no __repl__
+    }
+    
+    // REPL mode with persistent variables
+    RuntimeValue executeREPLWithPersistence(ProgramAST& program) {
+        // Register functions
+        for (auto& func : program.functions) {
+            functions[func->name] = func.get();
+        }
+        
+        // Call __repl__ and preserve variables
+        if (functions.count("__repl__")) {
+            FunctionAST* replFunc = functions["__repl__"];
+            pushScope();
+            
+            // Copy globals to current scope so they're accessible
+            for (auto& [name, val] : globals) {
+                scopes.back()[name] = val;
+            }
+            
+            RuntimeValue result;
+            try {
+                for (auto& stmt : replFunc->body) {
+                    result = executeStmt(stmt.get());
+                }
+            } catch (const RuntimeValue& returnVal) {
+                result = returnVal;
+            }
+            
+            // Copy variables back to globals for persistence
+            if (!scopes.empty()) {
+                for (auto& [name, val] : scopes.back()) {
+                    if (name != "__repl__") {  // Don't save the function itself
+                        globals[name] = val;
+                    }
+                }
+            }
+            
+            popScope();
+            return result;
+        }
+        
+        return RuntimeValue();
+    }
+    
     void processImport(const std::string& moduleName) {
         // Avoid double imports
         if (importedModules.count(moduleName)) return;

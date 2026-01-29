@@ -113,29 +113,57 @@ int main(int argc, char* argv[]) {
             if (replInput.empty()) continue;
             
             try {
-                // Wrap input in a simple expression statement or function call
-                std::string code = "def __repl__():\n    " + replInput + "\n";
+                bool executed = false;
+                RuntimeValue result;
                 
-                Lexer lexer(code);
-                std::vector<Token> tokens = lexer.tokenize();
-                Parser parser(tokens);
-                auto program = parser.parse();
+                // Try as statement first (handles assignments like a = 5)
+                try {
+                    std::string stmtCode = "def __repl__():\n    " + replInput + "\n";
+                    Lexer lexer(stmtCode);
+                    std::vector<Token> tokens = lexer.tokenize();
+                    Parser parser(tokens);
+                    auto program = parser.parse();
+                    
+                    if (!program->functions.empty()) {
+                        result = repl.executeREPLWithPersistence(*program);
+                        executed = true;
+                    }
+                } catch (...) {
+                    // Statement parsing failed, will try as expression
+                }
                 
-                // Execute the __repl__ function
-                if (!program->functions.empty()) {
-                    repl.execute(*program);
-                    // Call __repl__
-                    for (auto& func : program->functions) {
-                        if (func->name == "__repl__") {
-                            // Already executed via main, need direct call
-                            break;
-                        }
+                // If statement didn't execute or we want to print value, try expression
+                if (!executed) {
+                    std::string exprCode = "def __repl__():\n    return " + replInput + "\n";
+                    Lexer lexer(exprCode);
+                    std::vector<Token> tokens = lexer.tokenize();
+                    Parser parser(tokens);
+                    auto program = parser.parse();
+                    
+                    if (!program->functions.empty()) {
+                        result = repl.executeREPLWithPersistence(*program);
+                        executed = true;
+                    }
+                }
+                
+                // Print result if not null/void
+                if (executed && result.type != ValueType::Null) {
+                    if (result.type == ValueType::Int) {
+                        std::cout << result.intVal << std::endl;
+                    } else if (result.type == ValueType::Double) {
+                        std::cout << result.doubleVal << std::endl;
+                    } else if (result.type == ValueType::String) {
+                        std::cout << result.stringVal << std::endl;
+                    } else if (result.type == ValueType::Bool) {
+                        std::cout << (result.boolVal ? "true" : "false") << std::endl;
                     }
                 }
             } catch (const OmniException& e) {
                 std::cerr << "Error: " << e.message << std::endl;
             } catch (const std::exception& e) {
                 std::cerr << "Error: " << e.what() << std::endl;
+            } catch (...) {
+                std::cerr << "Error: Unknown exception" << std::endl;
             }
         }
         
