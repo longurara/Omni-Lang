@@ -9,44 +9,26 @@ def main():
     print("===============================================")
     print("")
     
-    // ============= SET MENUS DATA =============
+    // ============= LOAD MENUS FROM CSV =============
     menus = List.new()
     
-    m1 = Map.new()
-    m1 = Map.put(m1, "id", "PW001")
-    m1 = Map.put(m1, "name", "Wedding party 01")
-    m1 = Map.put(m1, "price", 3750000)
-    menus = List.add(menus, m1)
+    csvData = CSV.readFile("data/FeastMenu.csv")
+    csvSize = List.size(csvData)
     
-    m2 = Map.new()
-    m2 = Map.put(m2, "id", "PW002")
-    m2 = Map.put(m2, "name", "Company year end party")
-    m2 = Map.put(m2, "price", 2085000)
-    menus = List.add(menus, m2)
-    
-    m3 = Map.new()
-    m3 = Map.put(m3, "id", "PW003")
-    m3 = Map.put(m3, "name", "Birthday Party 01")
-    m3 = Map.put(m3, "price", 1850000)
-    menus = List.add(menus, m3)
-    
-    m4 = Map.new()
-    m4 = Map.put(m4, "id", "PW004")
-    m4 = Map.put(m4, "name", "Wedding party 02")
-    m4 = Map.put(m4, "price", 3550000)
-    menus = List.add(menus, m4)
-    
-    m5 = Map.new()
-    m5 = Map.put(m5, "id", "PW005")
-    m5 = Map.put(m5, "name", "Birthday Party 02")
-    m5 = Map.put(m5, "price", 2250000)
-    menus = List.add(menus, m5)
-    
-    m6 = Map.new()
-    m6 = Map.put(m6, "id", "PW006")
-    m6 = Map.put(m6, "name", "Meeting Party")
-    m6 = Map.put(m6, "price", 1950000)
-    menus = List.add(menus, m6)
+    // Skip header row (index 0), parse from index 1
+    i = 1
+    while i < csvSize:
+        row = List.get(csvData, i)
+        
+        // CSV columns: Code, Name, Price, Ingredients
+        m = Map.new()
+        m = Map.put(m, "id", List.get(row, 0))
+        m = Map.put(m, "name", List.get(row, 1))
+        m = Map.put(m, "price", Integer.parseInt(List.get(row, 2)))
+        m = Map.put(m, "ingredients", List.get(row, 3))
+        
+        menus = List.add(menus, m)
+        i = i + 1
     
     // ============= CUSTOMER AND ORDER DATA =============
     customers = List.new()
