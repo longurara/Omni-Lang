@@ -1,4 +1,4 @@
-# Dự án OmniLang (Năm 2026)
+# Dự án OmniLang
 
 Đây là kho mã nguồn chính thức của **OmniLang** - Ngôn ngữ lập trình hiện đại, đơn giản và mạnh mẽ.
 
