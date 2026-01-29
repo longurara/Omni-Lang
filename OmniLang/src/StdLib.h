@@ -12,6 +12,11 @@
 #include <algorithm>
 #include <iomanip>
 #include <regex>
+#ifdef _WIN32
+    #include <windows.h>
+#else
+    #include <unistd.h>
+#endif
 #include "AST.h"
 
 //===----------------------------------------------------------------------===//
@@ -25,7 +30,8 @@ enum class ValueType {
     Bool,
     String,
     Array,
-    Object
+    Object,
+    Lambda
 };
 
 struct RuntimeValue {
@@ -40,6 +46,10 @@ struct RuntimeValue {
     // Complex types
     std::vector<RuntimeValue> arrayVal;
     std::unordered_map<std::string, RuntimeValue> objectVal;
+    
+    // Lambda support
+    std::vector<std::string> lambdaParams;
+    void* lambdaBody = nullptr; // Pointer to ExprAST
     
     // Constructors
     RuntimeValue() : type(ValueType::Null) {}
@@ -113,6 +123,7 @@ public:
                     if (i < args.size() - 1) std::cout << " ";
                 }
                 std::cout << std::endl;
+                std::cout.flush();
                 return RuntimeValue();
             };
             
@@ -242,6 +253,11 @@ public:
                 if (args[0].type == ValueType::Array)
                     return RuntimeValue((long long)args[0].arrayVal.size());
                 return RuntimeValue(0LL);
+            };
+            
+            funcs["String.length"] = [](const std::vector<RuntimeValue>& args) {
+                if (args.empty()) return RuntimeValue(0LL);
+                return RuntimeValue((long long)args[0].stringVal.length());
             };
             
             funcs["str"] = [](const std::vector<RuntimeValue>& args) {
@@ -1438,6 +1454,66 @@ public:
                 
                 size_t pos = 0;
                 return parse(json, pos);
+            };
+            
+            // ===== System Functions =====
+            funcs["System.exit"] = [](const std::vector<RuntimeValue>& args) {
+                int code = args.empty() ? 0 : (int)args[0].toInt();
+                std::exit(code);
+                return RuntimeValue();
+            };
+            
+            funcs["System.getenv"] = [](const std::vector<RuntimeValue>& args) {
+                if (args.empty()) return RuntimeValue("");
+                const char* val = std::getenv(args[0].stringVal.c_str());
+                return RuntimeValue(val ? std::string(val) : "");
+            };
+            
+            funcs["System.sleep"] = [](const std::vector<RuntimeValue>& args) {
+                if (args.empty()) return RuntimeValue();
+                int ms = (int)args[0].toInt();
+                #ifdef _WIN32
+                    Sleep(ms);
+                #else
+                    usleep(ms * 1000);
+                #endif
+                return RuntimeValue();
+            };
+            
+            // ===== Path Functions =====
+            funcs["Path.join"] = [](const std::vector<RuntimeValue>& args) {
+                std::string result;
+                for (size_t i = 0; i < args.size(); i++) {
+                    if (i > 0 && !result.empty() && result.back() != '/' && result.back() != '\\') {
+                        result += "/";
+                    }
+                    result += args[i].stringVal;
+                }
+                return RuntimeValue(result);
+            };
+            
+            funcs["Path.dirname"] = [](const std::vector<RuntimeValue>& args) {
+                if (args.empty()) return RuntimeValue("");
+                std::string path = args[0].stringVal;
+                size_t pos = path.find_last_of("/\\");
+                if (pos == std::string::npos) return RuntimeValue("");
+                return RuntimeValue(path.substr(0, pos));
+            };
+            
+            funcs["Path.basename"] = [](const std::vector<RuntimeValue>& args) {
+                if (args.empty()) return RuntimeValue("");
+                std::string path = args[0].stringVal;
+                size_t pos = path.find_last_of("/\\");
+                if (pos == std::string::npos) return RuntimeValue(path);
+                return RuntimeValue(path.substr(pos + 1));
+            };
+            
+            funcs["Path.extension"] = [](const std::vector<RuntimeValue>& args) {
+                if (args.empty()) return RuntimeValue("");
+                std::string path = args[0].stringVal;
+                size_t pos = path.find_last_of('.');
+                if (pos == std::string::npos) return RuntimeValue("");
+                return RuntimeValue(path.substr(pos));
             };
         }
         

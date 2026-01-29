@@ -31,37 +31,52 @@
         },
         {
             "open": "\"",
-            "close": "\""
+            "close": "\"",
+            "notIn": [
+                "string"
+            ]
         },
         {
             "open": "'",
-            "close": "'"
+            "close": "'",
+            "notIn": [
+                "string",
+                "comment"
+            ]
         }
     ],
     "surroundingPairs": [
-        {
-            "open": "{",
-            "close": "}"
-        },
-        {
-            "open": "[",
-            "close": "]"
-        },
-        {
-            "open": "(",
-            "close": ")"
-        },
-        {
-            "open": "\"",
-            "close": "\""
-        },
-        {
-            "open": "'",
-            "close": "'"
-        }
+        [
+            "{",
+            "}"
+        ],
+        [
+            "[",
+            "]"
+        ],
+        [
+            "(",
+            ")"
+        ],
+        [
+            "\"",
+            "\""
+        ],
+        [
+            "'",
+            "'"
+        ]
     ],
     "indentationRules": {
-        "increaseIndentPattern": "^.*:\\s*$",
-        "decreaseIndentPattern": "^\\s*(else|elif|catch|finally).*$"
-    }
+        "increaseIndentPattern": "^\\s*(def|class|if|elif|else|while|for|try|catch|finally).*:\\s*$",
+        "decreaseIndentPattern": "^\\s*(elif|else|catch|finally).*$"
+    },
+    "onEnterRules": [
+        {
+            "beforeText": "^\\s*(def|class|if|elif|else|while|for|try|catch|finally).*:\\s*$",
+            "action": {
+                "indent": "indent"
+            }
+        }
+    ]
 }

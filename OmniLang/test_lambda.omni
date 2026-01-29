@@ -1,0 +1,11 @@
+def main():
+    print("=== Lambda Test ===")
+    
+    # Lambda creation
+    double = x -> x * 2
+    print("Lambda created")
+    
+    # Lambda should be stored, execution requires higher-order function support
+    print("Lambda stored successfully")
+    
+    print("=== Done ===")

@@ -12,10 +12,10 @@
             "include": "#keywords"
         },
         {
-            "include": "#types"
+            "include": "#constants"
         },
         {
-            "include": "#constants"
+            "include": "#types"
         },
         {
             "include": "#functions"
@@ -28,6 +28,9 @@
         },
         {
             "include": "#operators"
+        },
+        {
+            "include": "#support"
         }
     ],
     "repository": {
@@ -36,11 +39,37 @@
                 {
                     "scopeName": "comment.line.double-slash.omni",
                     "match": "//.*$"
+                },
+                {
+                    "scopeName": "comment.block.omni",
+                    "begin": "/\\*",
+                    "end": "\\*/"
                 }
             ]
         },
         "strings": {
             "patterns": [
+                {
+                    "name": "string.interpolated.omni",
+                    "begin": "f\"",
+                    "end": "\"",
+                    "patterns": [
+                        {
+                            "name": "constant.character.escape.omni",
+                            "match": "\\\\."
+                        },
+                        {
+                            "name": "meta.embedded.line.omni",
+                            "begin": "\\{",
+                            "end": "\\}",
+                            "patterns": [
+                                {
+                                    "include": "$self"
+                                }
+                            ]
+                        }
+                    ]
+                },
                 {
                     "name": "string.quoted.double.omni",
                     "begin": "\"",
@@ -58,15 +87,15 @@
             "patterns": [
                 {
                     "name": "keyword.control.omni",
-                    "match": "\\b(if|elif|else|while|for|return|break|continue|try|catch|finally|throw|in|as)\\b"
+                    "match": "\\b(if|elif|else|while|for|return|break|continue|try|catch|finally|throw|in|as|from)\\b"
                 },
                 {
                     "name": "keyword.other.omni",
-                    "match": "\\b(def|var|import|new|extends|implements)\\b"
+                    "match": "\\b(def|var|import|new|extends|implements|static|final|const)\\b"
                 },
                 {
                     "name": "storage.modifier.omni",
-                    "match": "\\b(public|private|protected|static)\\b"
+                    "match": "\\b(public|private|protected)\\b"
                 },
                 {
                     "name": "variable.language.omni",
@@ -78,7 +107,7 @@
             "patterns": [
                 {
                     "name": "storage.type.omni",
-                    "match": "\\b(int|long|float|double|bool|char|void|String|class|interface)\\b"
+                    "match": "\\b(int|long|float|double|bool|char|void|String|class|interface|enum)\\b"
                 }
             ]
         },
@@ -112,7 +141,7 @@
         "classes": {
             "patterns": [
                 {
-                    "match": "\\b(class|interface)\\s+([a-zA-Z_]\\w*)",
+                    "match": "\\b(class|interface|enum)\\s+([a-zA-Z_]\\w*)",
                     "captures": {
                         "1": {
                             "name": "storage.type.omni"
@@ -121,14 +150,22 @@
                             "name": "entity.name.type.class.omni"
                         }
                     }
+                },
+                {
+                    "match": "\\b([A-Z][a-zA-Z0-9_]*)\\b",
+                    "name": "support.class.omni"
                 }
             ]
         },
         "numbers": {
             "patterns": [
                 {
+                    "name": "constant.numeric.hex.omni",
+                    "match": "\\b0x[0-9a-fA-F]+\\b"
+                },
+                {
                     "name": "constant.numeric.omni",
-                    "match": "\\b\\d+(\\.\\d+)?\\b"
+                    "match": "\\b\\d+(\\.\\d+)?f?\\b"
                 }
             ]
         },
@@ -136,7 +173,7 @@
             "patterns": [
                 {
                     "name": "keyword.operator.omni",
-                    "match": "\\+|-|\\*|/|%|=|==|!=|<|>|<=|>=|&&|\\|\\||!|\\.|\\+\\+|--|\\+=|-="
+                    "match": "\\+|-|\\*|/|%|=|==|!=|<|>|<=|>=|&&|\\|\\||!|\\.|\\+\\+|--|\\+=|-=|->"
                 }
             ]
         }

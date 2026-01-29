@@ -3,7 +3,8 @@
     "publisher": "omnilang",
     "displayName": "Omni Language Support",
     "description": "Language support for Omni Programming Language",
-    "version": "0.0.1",
+    "version": "0.0.3",
+    "icon": "images/icon.png",
     "repository": {
         "type": "git",
         "url": "https://github.com/longurara/vscode-omni"

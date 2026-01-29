@@ -1,0 +1,10 @@
+[
+    {
+        "command": "vsce package",
+        "description": "Package the VSCode extension into a .vsix file"
+    },
+    {
+        "command": "code --install-extension vscode-omni-0.0.3.vsix",
+        "description": "Install the packaged extension"
+    }
+]

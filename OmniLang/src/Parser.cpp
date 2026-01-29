@@ -135,7 +135,10 @@ std::unique_ptr<ProgramAST> Parser::parse() {
 std::unique_ptr<ImportAST> Parser::parseImport() {
     expect(TokenType::Import, "Expected 'import'");
     Token name = advance();
-    return std::make_unique<ImportAST>(name.value);
+    // Accept both string or identifier
+    std::string moduleName = name.value;
+    // Handle string token - already has the path value without quotes
+    return std::make_unique<ImportAST>(moduleName);
 }
 
 //===----------------------------------------------------------------------===//
@@ -372,8 +375,11 @@ StmtPtr Parser::parseStatement() {
 
 StmtPtr Parser::parseReturnStatement() {
     expect(TokenType::Return, "Expected 'return'");
+    int line = tokens[current-1].line;
     ExprPtr value = parseExpression();
-    return std::make_unique<ReturnStmtAST>(std::move(value));
+    auto stmt = std::make_unique<ReturnStmtAST>(std::move(value));
+    stmt->line = line;
+    return stmt;
 }
 
 // Helper function to parse elif/else chains
@@ -406,27 +412,34 @@ std::vector<StmtPtr> Parser::parseElifElseChain() {
 
 StmtPtr Parser::parseIfStatement() {
     expect(TokenType::If, "Expected 'if'");
+    int line = tokens[current-1].line;
     ExprPtr cond = parseExpression();
     expect(TokenType::Colon, "Expected ':' after if condition");
 
     std::vector<StmtPtr> thenBody = parseBlock();
     std::vector<StmtPtr> elseBody = parseElifElseChain();
 
-    return std::make_unique<IfStmtAST>(std::move(cond), std::move(thenBody), std::move(elseBody));
+    auto stmt = std::make_unique<IfStmtAST>(std::move(cond), std::move(thenBody), std::move(elseBody));
+    stmt->line = line;
+    return stmt;
 }
 
 StmtPtr Parser::parseWhileStatement() {
     expect(TokenType::While, "Expected 'while'");
+    int line = tokens[current-1].line;
     ExprPtr cond = parseExpression();
     expect(TokenType::Colon, "Expected ':' after while condition");
 
     std::vector<StmtPtr> body = parseBlock();
 
-    return std::make_unique<WhileStmtAST>(std::move(cond), std::move(body));
+    auto stmt = std::make_unique<WhileStmtAST>(std::move(cond), std::move(body));
+    stmt->line = line;
+    return stmt;
 }
 
 StmtPtr Parser::parseForStatement() {
     expect(TokenType::For, "Expected 'for'");
+    int line = tokens[current-1].line;
     
     Token varName = advance();
     expect(TokenType::Identifier, "Expected loop variable");
@@ -441,13 +454,16 @@ StmtPtr Parser::parseForStatement() {
     
     std::vector<StmtPtr> body = parseBlock();
     
-    return std::make_unique<ForStmtAST>(loopVar, std::move(iterable), std::move(body));
+    auto stmt = std::make_unique<ForStmtAST>(loopVar, std::move(iterable), std::move(body));
+    stmt->line = line;
+    return stmt;
 }
 
 StmtPtr Parser::parseExpressionStatement() {
     ExprPtr expr = parseExpression();
     if (!expr) return nullptr;
-    
+    int line = expr->line; // Use expression line
+
     // Check for assignment
     if (match(TokenType::Assign)) {
         auto* varExpr = dynamic_cast<VariableExprAST*>(expr.get());
@@ -455,11 +471,15 @@ StmtPtr Parser::parseExpressionStatement() {
             std::string varName = varExpr->name;
             ExprPtr rhs = parseExpression();
             TypeInfo type;  // Inferred
-            return std::make_unique<VarDeclStmtAST>(varName, type, std::move(rhs));
+            auto stmt = std::make_unique<VarDeclStmtAST>(varName, type, std::move(rhs));
+            stmt->line = line;
+            return stmt;
         }
     }
     
-    return std::make_unique<ExprStmtAST>(std::move(expr));
+    auto stmt = std::make_unique<ExprStmtAST>(std::move(expr));
+    stmt->line = line;
+    return stmt;
 }
 
 StmtPtr Parser::parseTryCatchStatement() {
@@ -528,7 +548,8 @@ int Parser::getPrecedence(TokenType type) {
         case TokenType::Star:
         case TokenType::Slash:
         case TokenType::Percent: return 30;
-        case TokenType::Dot: return 40;  // Member access has high priority
+        case TokenType::Dot:
+        case TokenType::LBracket: return 40;  // Member access and array index have high priority
         default: return 0;
     }
 }
@@ -536,6 +557,7 @@ int Parser::getPrecedence(TokenType type) {
 bool isExpressionToken(TokenType type) {
     return type == TokenType::Number ||
            type == TokenType::StringStr ||
+           type == TokenType::FString ||
            type == TokenType::Identifier ||
            type == TokenType::LParen ||
            type == TokenType::LBracket ||
@@ -645,28 +667,55 @@ ExprPtr Parser::parsePrimary() {
     // Self/This
     if (tok.type == TokenType::Self || tok.type == TokenType::This) {
         advance();
-        return std::make_unique<SelfExprAST>();
+        auto node = std::make_unique<SelfExprAST>();
+        node->line = tok.line;
+        return node;
     }
 
     // Number
     if (tok.type == TokenType::Number) {
         advance();
-        return std::make_unique<NumberExprAST>(std::stod(tok.value));
+        auto node = std::make_unique<NumberExprAST>(std::stod(tok.value));
+        node->line = tok.line;
+        return node;
     }
 
     // String
     if (tok.type == TokenType::StringStr) {
         advance();
-        return std::make_unique<StringExprAST>(tok.value);
+        auto node = std::make_unique<StringExprAST>(tok.value);
+        node->line = tok.line;
+        return node;
+    }
+    
+    // F-String (interpolated)
+    if (tok.type == TokenType::FString) {
+        advance();
+        auto node = std::make_unique<FStringExprAST>(tok.value);
+        node->line = tok.line;
+        return node;
     }
 
-    // Identifier or function call
+    // Identifier or function call or lambda
     if (tok.type == TokenType::Identifier) {
         advance();
-        if (check(TokenType::LParen)) {
-            return parseCallExpr(tok.value);
+        
+        // Check for lambda: x -> expr
+        if (check(TokenType::Arrow)) {
+            advance(); // consume ->
+            std::vector<std::string> params = {tok.value};
+            ExprPtr body = parseExpression();
+            auto node = std::make_unique<LambdaExprAST>(std::move(params), std::move(body));
+            node->line = tok.line;
+            return node;
         }
-        return std::make_unique<VariableExprAST>(tok.value);
+        
+        if (check(TokenType::LParen)) {
+            return parseCallExpr(tok.value); // parseCallExpr needs update too?
+        }
+        auto node = std::make_unique<VariableExprAST>(tok.value);
+        node->line = tok.line;
+        return node;
     }
     
     // Type keywords as class names for static method calls (String.length, Integer.parseInt, etc.)

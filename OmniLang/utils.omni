@@ -1,0 +1,6 @@
+# Helper module for import testing
+def helper_add(a, b):
+    return a + b
+
+def helper_greet(name):
+    print("Hello from helper:", name)

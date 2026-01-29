@@ -9,6 +9,7 @@ enum class TokenType {
     Identifier,    // name, count
     Number,        // 123, 3.14
     StringStr,     // "hello"
+    FString,       // f"hello {name}"
 
     // Keywords - Functions & Control
     Def, Return, If, Elif, Else, While, For, Var, Import,

@@ -95,8 +95,34 @@ std::vector<Token> Lexer::tokenize() {
             continue;
         }
 
-        // 4. Identifiers & Keywords
+        // 4. Identifiers & Keywords (and f-strings)
         if (isalpha(current) || current == '_') {
+            // Check for f-string: f"..."
+            if (current == 'f' && (peek(1) == '"' || peek(1) == '\'')) {
+                advance(); // Skip 'f'
+                char quote = peek();
+                advance(); // Skip opening quote
+                std::string text;
+                while (peek() != quote && peek() != '\0') {
+                    if (peek() == '\\') {
+                        advance();
+                        char escaped = advance();
+                        switch (escaped) {
+                            case 'n': text += '\n'; break;
+                            case 't': text += '\t'; break;
+                            case '\\': text += '\\'; break;
+                            case '{': text += '{'; break;
+                            case '}': text += '}'; break;
+                            default: text += escaped;
+                        }
+                    } else {
+                        text += advance();
+                    }
+                }
+                advance(); // Skip closing quote
+                tokens.push_back({TokenType::FString, text, line, col});
+                continue;
+            }
             tokens.push_back(identifier());
             continue;
         }
@@ -127,7 +153,22 @@ std::vector<Token> Lexer::tokenize() {
                 else tokens.push_back({TokenType::Minus, "-", line, col});
                 break;
             case '*': tokens.push_back({TokenType::Star, "*", line, col}); break;
-            case '/': tokens.push_back({TokenType::Slash, "/", line, col}); break;
+            case '/': 
+                if (match('*')) {
+                    // Multi-line comment
+                    while (peek() != '\0') {
+                        if (peek() == '*' && peek(1) == '/') {
+                            advance(); // Consume *
+                            advance(); // Consume /
+                            break;
+                        }
+                        if (peek() == '\n') line++;
+                        advance();
+                    }
+                    break; // Don't emit token
+                }
+                tokens.push_back({TokenType::Slash, "/", line, col}); 
+                break;
             case '%': tokens.push_back({TokenType::Percent, "%", line, col}); break;
             case '=': 
                 if (match('=')) tokens.push_back({TokenType::Equal, "==", line, col});

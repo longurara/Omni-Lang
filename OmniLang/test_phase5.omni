@@ -1,0 +1,21 @@
+import "utils.omni"
+
+def main():
+    print("=== Phase 5 Test ===")
+    
+    # 1. Test Array Literals
+    arr = [1, 2, 3, 4, 5]
+    print("[TEST] Array literal:", arr[0], arr[1], arr[2])
+    
+    # 2. Test Import System
+    msg = greet("Omni")
+    print("[TEST] Import:", msg)
+    
+    result = add(10, 20)
+    print("[TEST] Imported add:", result)
+    
+    # 3. Test Lambda (store only - execution requires higher-order function support)
+    double = x -> x * 2
+    print("[TEST] Lambda created")
+    
+    print("=== Done ===")

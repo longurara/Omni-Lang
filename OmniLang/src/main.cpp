@@ -96,27 +96,51 @@ int main(int argc, char* argv[]) {
     if (!filename.empty()) {
         source = readFile(filename);
     } else {
-        // Demo program
-        source = R"(
-def greet(name: String):
-    print("Hello, " + name + "!")
-
-def main():
-    print("=== Omni Language Demo ===")
-    greet("World")
-    
-    x = 10
-    y = 20
-    print("x + y =", x + y)
-    
-    if x < y:
-        print("x is less than y")
-    
-    print("Math.sqrt(16) =", Math.sqrt(16))
-    print("Math.pow(2, 10) =", Math.pow(2, 10))
-    
-    print("=== Done! ===")
-)";
+        // REPL mode - interactive console
+        std::cout << "Omni Language REPL v1.0" << std::endl;
+        std::cout << "Type expressions to evaluate. Type 'exit' to quit." << std::endl;
+        std::cout << std::endl;
+        
+        Interpreter repl;
+        std::string replInput;
+        
+        while (true) {
+            std::cout << ">>> ";
+            std::cout.flush();
+            
+            if (!std::getline(std::cin, replInput)) break;
+            if (replInput == "exit" || replInput == "quit") break;
+            if (replInput.empty()) continue;
+            
+            try {
+                // Wrap input in a simple expression statement or function call
+                std::string code = "def __repl__():\n    " + replInput + "\n";
+                
+                Lexer lexer(code);
+                std::vector<Token> tokens = lexer.tokenize();
+                Parser parser(tokens);
+                auto program = parser.parse();
+                
+                // Execute the __repl__ function
+                if (!program->functions.empty()) {
+                    repl.execute(*program);
+                    // Call __repl__
+                    for (auto& func : program->functions) {
+                        if (func->name == "__repl__") {
+                            // Already executed via main, need direct call
+                            break;
+                        }
+                    }
+                }
+            } catch (const OmniException& e) {
+                std::cerr << "Error: " << e.message << std::endl;
+            } catch (const std::exception& e) {
+                std::cerr << "Error: " << e.what() << std::endl;
+            }
+        }
+        
+        std::cout << "Goodbye!" << std::endl;
+        return 0;
     }
 
     if (source.empty()) {
@@ -150,7 +174,15 @@ def main():
     // Run
     if (runProgram) {
         Interpreter interp;
-        interp.execute(*program);
+        try {
+            interp.execute(*program);
+        } catch (const OmniException& e) {
+            std::cerr << "Runtime Error at line " << e.line << ": " << e.message << std::endl;
+            return 1;
+        } catch (const std::exception& e) {
+            std::cerr << "Internal Error: " << e.what() << std::endl;
+            return 1;
+        }
     }
 
     return 0;

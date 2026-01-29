@@ -58,7 +58,135 @@ function activate(context) {
         }
     }, '.'); // Trigger on dot
 
+    // Hover Provider for documentation tooltips
+    const hoverProvider = vscode.languages.registerHoverProvider('omni', {
+        provideHover(document, position) {
+            const wordRange = document.getWordRangeAtPosition(position);
+            if (!wordRange) return undefined;
+
+            const word = document.getText(wordRange);
+            const lineText = document.lineAt(position).text;
+
+            // Check for module.method pattern (e.g., Math.sqrt)
+            const dotIndex = lineText.lastIndexOf('.', position.character - 1);
+            if (dotIndex !== -1) {
+                const beforeDot = lineText.substring(0, dotIndex).trim().split(/\s+/).pop();
+                const fullName = beforeDot + '.' + word;
+                const doc = getHoverDoc(fullName);
+                if (doc) {
+                    return new vscode.Hover(new vscode.MarkdownString(doc));
+                }
+            }
+
+            // Check standalone functions and keywords
+            const doc = getHoverDoc(word);
+            if (doc) {
+                return new vscode.Hover(new vscode.MarkdownString(doc));
+            }
+
+            return undefined;
+        }
+    });
+
+    // 3. Signature Help Provider (Parameter hints)
+    const signatureProvider = vscode.languages.registerSignatureHelpProvider('omni', {
+        provideSignatureHelp(document, position) {
+            const linePrefix = document.lineAt(position).text.substr(0, position.character);
+            const openParen = linePrefix.lastIndexOf('(');
+            if (openParen === -1) return undefined;
+
+            // Find function name before the parenthesis
+            const beforeParen = linePrefix.substring(0, openParen).trim();
+            const funcName = beforeParen.split(/[\s\.]+/).pop();
+            const fullPrefix = beforeParen.split(/\s+/).pop(); // Handle obj.method
+
+            let doc = getHoverDoc(fullPrefix) || getHoverDoc(funcName);
+
+            if (doc) {
+                // Extract signature from doc string (e.g., "**print(...args)**")
+                const match = doc.match(/\*\*([a-zA-Z0-9_.]+)(\(.*\))\*\*/);
+                if (match) {
+                    const signatureLabel = match[1] + match[2];
+                    const signature = new vscode.SignatureInformation(signatureLabel, new vscode.MarkdownString(doc));
+                    return {
+                        signatures: [signature],
+                        activeSignature: 0,
+                        activeParameter: 0
+                    };
+                }
+            }
+            return undefined;
+        }
+    }, '(', ',');
+
+    // 4. Document Symbol Provider (Outline view)
+    const symbolProvider = vscode.languages.registerDocumentSymbolProvider('omni', {
+        provideDocumentSymbols(document) {
+            const symbols = [];
+
+            for (let i = 0; i < document.lineCount; i++) {
+                const line = document.lineAt(i);
+
+                // Match class definition
+                const classMatch = line.text.match(/^class\s+([a-zA-Z_]\w*)/);
+                if (classMatch) {
+                    symbols.push(new vscode.DocumentSymbol(
+                        classMatch[1],
+                        'Class',
+                        vscode.SymbolKind.Class,
+                        line.range, line.range
+                    ));
+                    continue;
+                }
+
+                // Match function definition
+                const funcMatch = line.text.match(/^def\s+([a-zA-Z_]\w*)/);
+                if (funcMatch) {
+                    symbols.push(new vscode.DocumentSymbol(
+                        funcMatch[1],
+                        'Function',
+                        vscode.SymbolKind.Function,
+                        line.range, line.range
+                    ));
+                    continue;
+                }
+            }
+            return symbols;
+        }
+    });
+
+    // 5. Definition Provider (Go to Definition)
+    const definitionProvider = vscode.languages.registerDefinitionProvider('omni', {
+        async provideDefinition(document, position) {
+            const wordRange = document.getWordRangeAtPosition(position);
+            if (!wordRange) return undefined;
+            const word = document.getText(wordRange);
+
+            // Search in current workspace
+            const files = await vscode.workspace.findFiles('**/*.omni');
+            const locations = [];
+
+            for (const file of files) {
+                const doc = await vscode.workspace.openTextDocument(file);
+                const text = doc.getText();
+
+                // Regex for definition: def name or class name
+                const regex = new RegExp(`(class|def)\\s+${word}\\b`, 'g');
+                let match;
+                while ((match = regex.exec(text)) !== null) {
+                    const pos = doc.positionAt(match.index);
+                    locations.push(new vscode.Location(file, pos));
+                }
+            }
+            return locations;
+        }
+    });
+
     context.subscriptions.push(provider);
+    context.subscriptions.push(hoverProvider);
+    context.subscriptions.push(signatureProvider);
+    context.subscriptions.push(symbolProvider);
+    context.subscriptions.push(definitionProvider);
 }
 
 function deactivate() { }
@@ -86,6 +214,7 @@ function createKeyword(label, doc) {
 function createClass(label, doc) {
     const item = new vscode.CompletionItem(label, vscode.CompletionItemKind.Class);
     item.documentation = new vscode.MarkdownString(doc);
+    item.commitCharacters = ['.']; // Allow typing '.' to auto-accept class name
     return item;
 }
 
@@ -120,9 +249,15 @@ function getTopLevelItems() {
         createClass('Map', 'Map (Dictionary) utility functions'),
         createClass('Date', 'Date and Time functions'),
         createClass('Serializer', 'JSON and Binary serialization'),
-        createClass('Regex', 'Regular Expression functions'),
-        createClass('CSV', 'CSV parsing functions'),
+        createClass('Regex', 'Regular expression functions'),
+        createClass('CSV', 'CSV parsing and reading functions'),
+        createClass('Path', 'File path utilities'),
+        createClass('System', 'System utilities (exit, env, time)'),
+    ];
+}
 
+function getBuiltinFunctions() {
+    return [
         // Built-in Functions
         createMethod('print', 'print(...args)', 'Print to console'),
         createMethod('printf', 'printf(fmt, ...args)', 'Formatted print'),
@@ -249,4 +384,193 @@ function getCSVMethods() {
         createMethod('readFile', 'readFile(path)', 'Read CSV file'),
         createMethod('parse', 'parse(content)', 'Parse CSV string'),
     ];
+}
+
+// Hover documentation for all functions
+function getHoverDoc(name) {
+    const docs = {
+        // --- Keywords ---
+        'def': `**def**
+Define a new function.
+
+\`\`\`omni
+def add(a, b):
+    return a + b
+\`\`\``,
+        'class': `**class**
+Define a new class or interface.
+
+\`\`\`omni
+class Person:
+    def __init__(self, name):
+        self.name = name
+\`\`\``,
+        'if': `**if statement**
+Execute code block if condition is true.
+
+\`\`\`omni
+if x > 0:
+    print("Positive")
+elif x < 0:
+    print("Negative")
+else:
+    print("Zero")
+\`\`\``,
+        'while': `**while loop**
+Repeat code block while condition is true.
+
+\`\`\`omni
+while x > 0:
+    print(x)
+    x = x - 1
+\`\`\``,
+        'for': `**for loop**
+Iterate over a sequence or range.
+
+\`\`\`omni
+for i in range(10):
+    print(i)
+\`\`\``,
+        'return': `**return**
+Exit function and return a value.`,
+
+        'print': `**print(...args)**
+Print values to standard output with newline.
+
+**Parameters:**
+* \`...args\`: Values to print (converted to string).
+
+**Example:**
+\`\`\`omni
+print("Hello", "World", 123)
+\`\`\``,
+
+        'input': `**input(prompt)**
+Read a line of text from standard input.
+
+**Parameters:**
+* \`prompt\` (String): Text to display before waiting for input.
+
+**Returns:**
+* \`String\`: The user input.`,
+
+        // --- Math Module ---
+        'Math.sqrt': `**Math.sqrt(x)**
+Calculates the square root of a number.
+
+**Parameters:**
+* \`x\` (Number): Must be non-negative.
+
+**Returns:**
+* \`Float\`: Square root of x.
+
+**Example:**
+\`\`\`omni
+Math.sqrt(16) // 4.0
+\`\`\``,
+
+        'Math.pow': `**Math.pow(base, exp)**
+Calculates base raised to the power of exponent.
+
+**Parameters:**
+* \`base\` (Number): The base number.
+* \`exp\` (Number): The exponent.
+
+**Returns:**
+* \`Float\`: Result of base^exp.`,
+
+        'Math.random': `**Math.random()**
+Returns a pseudo-random number between 0.0 (inclusive) and 1.0 (exclusive).
+
+**Returns:**
+* \`Float\`: Random value.`,
+
+        // --- String Module ---
+        'String.length': `**String.length(s)**
+Returns the length of the string.
+
+**Parameters:**
+* \`s\` (String): The input string.
+
+**Returns:**
+* \`Integer\`: Number of characters.`,
+
+        'String.substring': `**String.substring(s, start, [end])**
+Extracts a section of the string.
+
+**Parameters:**
+* \`s\` (String): Input string.
+* \`start\` (Integer): Start index (inclusive).
+* \`end\` (Integer): End index (exclusive). Optional.
+
+**Returns:**
+* \`String\`: Extracted substring.`,
+
+        'String.split': `**String.split(s, delimiter)**
+Splits string by delimiter.
+
+**Parameters:**
+* \`s\` (String): Input string.
+* \`delimiter\` (String): Separator pattern.
+
+**Returns:**
+* \`List<String>\`: List of substrings.`,
+
+        // --- File Module ---
+        'File.read': `**File.read(path)**
+Reads entire file content as string.
+
+**Parameters:**
+* \`path\` (String): Path to the file.
+
+**Returns:**
+* \`String\`: File content.
+* Throws error if file not found.`,
+
+        'File.write': `**File.write(path, content)**
+Writes string to file (overwrites existing).
+
+**Parameters:**
+* \`path\` (String): Path to the file.
+* \`content\` (String): Text to write.`,
+
+        // --- CSV Module ---
+        'CSV.parse': `**CSV.parse(content)**
+Parses a CSV string into a 2D list.
+
+**Parameters:**
+* \`content\` (String): Raw CSV text.
+
+**Returns:**
+* \`List<List<String>>\`: Rows and columns.
+
+**Example:**
+\`\`\`omni
+rows = CSV.parse("name,age\\nAlice,30")
+print(rows[1][0]) // "Alice"
+\`\`\``,
+
+        // --- Regex Module ---
+        'Regex.matches': `**Regex.matches(str, pattern)**
+Checks if string matches pattern exactly.
+
+**Parameters:**
+* \`str\` (String): Input string.
+* \`pattern\` (String): Regex pattern.
+
+**Returns:**
+* \`Boolean\`: True if full match.`,
+
+        // --- Path Module ---
+        'Path.join': `**Path.join(...parts)**
+Joins path segments ensuring correct separators.
+
+**Parameters:**
+* \`...parts\` (String): Path segments.
+
+**Returns:**
+* \`String\`: Joined path.`,
+    };
+
+    return docs[name] || null;
 }

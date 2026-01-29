@@ -2,84 +2,89 @@
     "Function Definition": {
         "prefix": "def",
         "body": [
-            "def ${1:functionName}(${2:args}):",
-            "    ${3:pass}"
+            "def ${1:funcName}(${2:args}):",
+            "\t$0"
         ],
         "description": "Define a new function"
-    },
-    "Class Definition": {
-        "prefix": "class",
-        "body": [
-            "class ${1:ClassName}:",
-            "    def init(${2:args}):",
-            "        ${3:pass}"
-        ],
-        "description": "Define a new class"
-    },
-    "If Statement": {
-        "prefix": "if",
-        "body": [
-            "if ${1:condition}:",
-            "    ${2:pass}"
-        ],
-        "description": "If statement"
-    },
-    "If-Else Statement": {
-        "prefix": "ifelse",
-        "body": [
-            "if ${1:condition}:",
-            "    ${2:pass}",
-            "else:",
-            "    ${3:pass}"
-        ],
-        "description": "If-Else statement"
-    },
-    "For Loop (Range)": {
-        "prefix": "for",
-        "body": [
-            "for ${1:i} in range(${2:limit}):",
-            "    ${3:pass}"
-        ],
-        "description": "For loop using range"
-    },
-    "While Loop": {
-        "prefix": "while",
-        "body": [
-            "while ${1:condition}:",
-            "    ${2:pass}"
-        ],
-        "description": "While loop"
-    },
-    "Try-Catch": {
-        "prefix": "try",
-        "body": [
-            "try:",
-            "    ${1:pass}",
-            "catch ${2:e}:",
-            "    print(${2:e})"
-        ],
-        "description": "Try-Catch block"
-    },
-    "Print": {
-        "prefix": "print",
-        "body": [
-            "print(${1Data})"
-        ],
-        "description": "Print to console"
-    },
-    "Import": {
-        "prefix": "import",
-        "body": [
-            "import \"${1:module}\""
-        ],
-        "description": "Import a module"
     },
     "Main Function": {
         "prefix": "main",
         "body": [
             "def main():",
-            "    ${1:pass}"
+            "\t${1:print(\"Hello, World!\")}"
         ],
-        "description": "Main function entry point"
+        "description": "Define main entry point"
+    },
+    "Class Definition": {
+        "prefix": "class",
+        "body": [
+            "class ${1:ClassName}:",
+            "\tdef __init__(self${2:, args}):",
+            "\t\t${3:pass}"
+        ],
+        "description": "Define a new class"
+    },
+    "Print": {
+        "prefix": "print",
+        "body": [
+            "print($1)"
+        ],
+        "description": "Print to console"
+    },
+    "If Statement": {
+        "prefix": "if",
+        "body": [
+            "if ${1:condition}:",
+            "\t$0"
+        ],
+        "description": "If statement"
+    },
+    "For Loop": {
+        "prefix": "for",
+        "body": [
+            "for ${1:item} in ${2:collection}:",
+            "\t$0"
+        ],
+        "description": "For loop"
+    },
+    "While Loop": {
+        "prefix": "while",
+        "body": [
+            "while ${1:condition}:",
+            "\t$0"
+        ],
+        "description": "While loop"
+    },
+    "Try Catch": {
+        "prefix": "try",
+        "body": [
+            "try:",
+            "\t$1",
+            "catch:",
+            "\t$2"
+        ],
+        "description": "Try-catch block"
+    },
+    "Import": {
+        "prefix": "import",
+        "body": [
+            "import \"${1:module}.omni\""
+        ],
+        "description": "Import a module"
+    },
+    "Lambda": {
+        "prefix": "lambda",
+        "body": [
+            "${1:x} -> ${2:expr}"
+        ],
+        "description": "Lambda expression"
+    },
+    "Public Method": {
+        "prefix": "public",
+        "body": [
+            "public def ${1:methodName}(self):",
+            "\t$0"
+        ],
+        "description": "Public method"
     }
 }

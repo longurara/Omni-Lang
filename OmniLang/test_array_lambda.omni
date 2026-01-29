@@ -1,0 +1,13 @@
+def main():
+    print("=== Array and Lambda Test ===")
+    
+    # 1. Test Array Literals
+    arr = [1, 2, 3, 4, 5]
+    print("Array[0]:", arr[0])
+    print("Array[2]:", arr[2])
+    
+    # 2. Test Lambda (store - execution needs higher-order functions)
+    double = x -> x * 2
+    print("Lambda created successfully")
+    
+    print("=== Done ===")

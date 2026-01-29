@@ -1,0 +1,11 @@
+import "utils.omni"
+
+def main():
+    print("=== Import Test ===")
+    
+    result = helper_add(10, 20)
+    print("helper_add(10, 20) =", result)
+    
+    helper_greet("User")
+    
+    print("=== Done ===")

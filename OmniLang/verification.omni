@@ -1,0 +1,43 @@
+/*
+  This is a multi-line comment.
+  It should be ignored by the parser.
+  Testing... 1, 2, 3.
+*/
+
+def main():
+    print("=== Verification Test ===")
+    
+    # 1. Test String.length (Fix)
+    s = "Hello"
+    if String.length(s) == 5:
+        print("[PASS] String.length")
+    else:
+        print("[FAIL] String.length: Expected 5, got", String.length(s))
+        
+    # 2. Test Path module
+    path = Path.join("folder", "file.txt")
+    if path == "folder/file.txt" || path == "folder\\file.txt":
+        print("[PASS] Path.join: " + path)
+    else:
+        print("[FAIL] Path.join: " + path)
+        
+    ext = Path.extension("image.png")
+    if ext == ".png":
+        print("[PASS] Path.extension: " + ext)
+    else:
+        print("[FAIL] Path.extension: " + ext)
+        
+    # 3. Test System module (Env)
+    # Just print PATH to see if it works, don't assert value
+    env = System.getenv("PATH")
+    if String.length(env) > 0:
+        print("[PASS] System.getenv found PATH")
+    else:
+        print("[WARNING] System.getenv returned empty (might be normal)")
+        
+    # 4. Test F-String Interpolation
+    name = "World"
+    greeting = f"Hello, {name}!"
+    print("[TEST] F-String:", greeting)
+    
+    print("=== Done ===")

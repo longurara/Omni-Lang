@@ -3,8 +3,13 @@
 #include <memory>
 #include <iostream>
 #include <stdexcept>
+#include <set>
+#include <sstream>
+#include <fstream>
 #include "AST.h"
 #include "StdLib.h"
+#include "Lexer.h"
+#include "Parser.h"
 
 // Exception types for control flow
 struct ReturnException {
@@ -14,7 +19,8 @@ struct ReturnException {
 
 struct OmniException : public std::exception {
     std::string message;
-    OmniException(const std::string& msg) : message(msg) {}
+    int line;
+    OmniException(const std::string& msg, int l = 0) : message(msg), line(l) {}
     const char* what() const noexcept override { return message.c_str(); }
 };
 
@@ -24,6 +30,11 @@ struct ContinueException {};
 class Interpreter {
 public:
     RuntimeValue execute(ProgramAST& program) {
+        // Process imports first
+        for (auto& imp : program.imports) {
+            processImport(imp->moduleName);
+        }
+        
         // Register classes
         for (auto& cls : program.classes) {
             classes[cls->name] = cls.get();
@@ -38,14 +49,52 @@ public:
             return executeFunction(functions["main"], {});
         }
         
-        std::cerr << "Error: No main() function found" << std::endl;
-        return RuntimeValue();
+        throw OmniException("No main() function found");
+    }
+    
+    void processImport(const std::string& moduleName) {
+        // Avoid double imports
+        if (importedModules.count(moduleName)) return;
+        importedModules.insert(moduleName);
+        
+        // Read file
+        std::ifstream file(moduleName);
+        if (!file.is_open()) {
+            throw OmniException("Cannot import: " + moduleName);
+        }
+        std::stringstream buf;
+        buf << file.rdbuf();
+        std::string source = buf.str();
+        
+        // Lex and parse the imported module
+        Lexer lexer(source);
+        std::vector<Token> tokens = lexer.tokenize();
+        Parser parser(tokens);
+        auto importedProgram = parser.parse();
+        
+        // Register imported functions and classes
+        for (auto& func : importedProgram->functions) {
+            if (func->name != "main") { // Don't import main()
+                functions[func->name] = func.get();
+                ownedFunctions.push_back(std::move(func));
+            }
+        }
+        for (auto& cls : importedProgram->classes) {
+            classes[cls->name] = cls.get();
+            ownedClasses.push_back(std::move(cls));
+        }
     }
 
 private:
+    int currentLine = 0;
     std::unordered_map<std::string, RuntimeValue> globals;
     std::unordered_map<std::string, FunctionAST*> functions;
     std::unordered_map<std::string, ClassAST*> classes;
+    
+    // Import tracking
+    std::set<std::string> importedModules;
+    std::vector<std::unique_ptr<FunctionAST>> ownedFunctions;
+    std::vector<std::unique_ptr<ClassAST>> ownedClasses;
     
     // Current scope variables
     std::vector<std::unordered_map<std::string, RuntimeValue>> scopes;
@@ -119,6 +168,9 @@ private:
     }
     
     RuntimeValue executeStmt(StmtAST* stmt) {
+        if (!stmt) return RuntimeValue();
+        if (stmt->line > 0) currentLine = stmt->line;
+
         if (auto* exprStmt = dynamic_cast<ExprStmtAST*>(stmt)) {
             return evalExpr(exprStmt->expr.get());
         }
@@ -228,7 +280,7 @@ private:
         // Throw statement
         if (auto* throwStmt = dynamic_cast<ThrowStmtAST*>(stmt)) {
             RuntimeValue val = evalExpr(throwStmt->exception.get());
-            throw OmniException(val.toString());
+            throw OmniException(val.toString(), currentLine);
         }
         
         // Break statement
@@ -246,6 +298,8 @@ private:
     
     RuntimeValue evalExpr(ExprAST* expr) {
         if (!expr) return RuntimeValue();
+        if (expr->line > 0) currentLine = expr->line;
+
         
         if (auto* num = dynamic_cast<NumberExprAST*>(expr)) {
             if (num->value == (long long)num->value) {
@@ -256,6 +310,27 @@ private:
         
         if (auto* str = dynamic_cast<StringExprAST*>(expr)) {
             return RuntimeValue(str->value);
+        }
+        
+        // F-String interpolation: f"Hello {name}!"
+        if (auto* fstr = dynamic_cast<FStringExprAST*>(expr)) {
+            std::string result;
+            std::string& tmpl = fstr->value;
+            size_t i = 0;
+            while (i < tmpl.length()) {
+                if (tmpl[i] == '{') {
+                    size_t end = tmpl.find('}', i);
+                    if (end != std::string::npos) {
+                        std::string varName = tmpl.substr(i + 1, end - i - 1);
+                        RuntimeValue val = getVar(varName);
+                        result += val.toString();
+                        i = end + 1;
+                        continue;
+                    }
+                }
+                result += tmpl[i++];
+            }
+            return RuntimeValue(result);
         }
         
         if (auto* var = dynamic_cast<VariableExprAST*>(expr)) {
@@ -299,8 +374,7 @@ private:
                 return executeFunction(functions[call->callee], args);
             }
             
-            std::cerr << "Unknown function: " << call->callee << std::endl;
-            return RuntimeValue();
+            throw OmniException("Unknown function: " + call->callee, currentLine);
         }
         
         if (auto* newExpr = dynamic_cast<NewExprAST*>(expr)) {
@@ -396,6 +470,15 @@ private:
                 }
             }
             return RuntimeValue();
+        }
+        
+        // Lambda expression: x -> x * 2
+        if (auto* lambda = dynamic_cast<LambdaExprAST*>(expr)) {
+            RuntimeValue result;
+            result.type = ValueType::Lambda;
+            result.lambdaParams = lambda->params;
+            result.lambdaBody = lambda->body.get();
+            return result;
         }
         
         return RuntimeValue();

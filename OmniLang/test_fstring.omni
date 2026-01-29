@@ -1,0 +1,6 @@
+def main():
+    print("Test start")
+    name = "World"
+    greeting = f"Hello, {name}!"
+    print(greeting)
+    print("Test end")

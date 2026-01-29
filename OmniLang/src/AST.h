@@ -27,6 +27,7 @@ struct TypeInfo {
 
 class ExprAST {
 public:
+    int line = 0;
     virtual ~ExprAST() = default;
 };
 
@@ -42,6 +43,13 @@ class StringExprAST : public ExprAST {
 public:
     std::string value;
     StringExprAST(const std::string& val) : value(val) {}
+};
+
+// F-string literal: f"Hello {name}"
+class FStringExprAST : public ExprAST {
+public:
+    std::string value; // Raw string with {expr} placeholders
+    FStringExprAST(const std::string& val) : value(val) {}
 };
 
 // Variable reference: x, count
@@ -114,6 +122,15 @@ public:
         : elements(std::move(elems)) {}
 };
 
+// Lambda expression: x -> x * 2, (a, b) -> a + b
+class LambdaExprAST : public ExprAST {
+public:
+    std::vector<std::string> params;
+    ExprPtr body;
+    LambdaExprAST(std::vector<std::string> p, ExprPtr b)
+        : params(std::move(p)), body(std::move(b)) {}
+};
+
 // Array access: arr[0]
 class IndexExprAST : public ExprAST {
 public:
@@ -132,6 +149,7 @@ class SelfExprAST : public ExprAST {};
 
 class StmtAST {
 public:
+    int line = 0;
     virtual ~StmtAST() = default;
 };
 
