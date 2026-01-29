@@ -1,0 +1,32 @@
+// Test nested if inside elif
+
+def main():
+    print("Test nested if")
+    
+    running = 1
+    while running == 1:
+        print("1. Test A")
+        print("2. Test B")
+        print("9. Exit")
+        c = input("Choice: ")
+        
+        if c == "1":
+            print("Option 1")
+            x = input("Enter number: ")
+            n = Integer.parseInt(x)
+            if n > 5:
+                print("Greater than 5")
+            else:
+                print("5 or less")
+        elif c == "2":
+            print("Option 2")
+            name = input("Name: ")
+            if String.length(name) > 3:
+                print("Long name")
+            else:
+                print("Short name")
+        elif c == "9":
+            print("Bye")
+            running = 0
+        else:
+            print("Invalid")

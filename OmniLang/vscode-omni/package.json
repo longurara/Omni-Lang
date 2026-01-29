@@ -1,0 +1,49 @@
+{
+    "name": "vscode-omni",
+    "publisher": "omnilang",
+    "displayName": "Omni Language Support",
+    "description": "Language support for Omni Programming Language",
+    "version": "0.0.1",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/longurara/vscode-omni"
+    },
+    "engines": {
+        "vscode": "^1.74.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "main": "./extension.js",
+    "activationEvents": [
+        "onLanguage:omni"
+    ],
+    "contributes": {
+        "languages": [
+            {
+                "id": "omni",
+                "aliases": [
+                    "Omni",
+                    "omni"
+                ],
+                "extensions": [
+                    ".omni"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "omni",
+                "scopeName": "source.omni",
+                "path": "./syntaxes/omni.tmLanguage.json"
+            }
+        ],
+        "snippets": [
+            {
+                "language": "omni",
+                "path": "./snippets/omni.code-snippets"
+            }
+        ]
+    }
+}

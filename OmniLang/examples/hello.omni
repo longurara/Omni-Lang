@@ -1,0 +1,17 @@
+# Hello World in Omni Language
+
+def add(a: int, b: int) -> int:
+    return a + b
+
+def greet(name: str):
+    print("Hello")
+    print(name)
+
+def main():
+    x = 10
+    y = 20
+    result = add(x, y)
+    if result > 25:
+        print("Big number!")
+    else:
+        print("Small number")

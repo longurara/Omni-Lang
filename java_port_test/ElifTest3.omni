@@ -1,0 +1,14 @@
+// Test elif with 3 branches
+
+def main():
+    print("Test")
+    s = input("Enter 1, 2, or 3: ")
+    if s == "1":
+        print("One")
+    elif s == "2":
+        print("Two")
+    elif s == "3":
+        print("Three")
+    else:
+        print("Other")
+    print("Done")

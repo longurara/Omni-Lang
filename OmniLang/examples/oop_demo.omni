@@ -1,0 +1,54 @@
+# OOP Demo in Omni Language
+
+import Math
+
+# Interface definition
+interface Drawable:
+    def draw(self)
+    def getArea(self) -> double
+
+# Base class
+class Shape:
+    String name
+    String color
+    
+    def __init__(self, name: String):
+        self.name = name
+        self.color = "black"
+    
+    def describe(self):
+        print("I am a " + self.name)
+
+# Inheritance
+class Circle(Shape) implements Drawable:
+    double radius
+    
+    def __init__(self, radius: double):
+        self.radius = radius
+    
+    def draw(self):
+        print("Drawing circle with radius " + self.radius)
+    
+    def getArea(self) -> double:
+        return 3.14159 * self.radius * self.radius
+
+class Rectangle(Shape):
+    double width
+    double height
+    
+    def __init__(self, w: double, h: double):
+        self.width = w
+        self.height = h
+    
+    def getArea(self) -> double:
+        return self.width * self.height
+
+# Main function
+def main():
+    c = new Circle(5.0)
+    c.draw()
+    area = c.getArea()
+    print("Area: " + area)
+    
+    r = new Rectangle(10.0, 20.0)
+    print("Rectangle area: " + r.getArea())

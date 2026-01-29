@@ -1,0 +1,22 @@
+# Simple OOP Test
+
+class Person:
+    String name
+    int age
+    
+    def __init__(self, name: String, age: int):
+        self.name = name
+        self.age = age
+    
+    def greet(self):
+        print("Hello")
+
+class Student(Person):
+    String school
+    
+    def study(self):
+        print("Studying")
+
+def main():
+    p = new Person("John", 30)
+    p.greet()

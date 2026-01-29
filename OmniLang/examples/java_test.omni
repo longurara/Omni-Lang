@@ -1,0 +1,45 @@
+# Full Java compatibility test
+
+def main():
+    print("=== Java Compatibility Test ===")
+    print("")
+    
+    # List/ArrayList
+    print("--- List/ArrayList ---")
+    customers = List.new()
+    customers = List.add(customers, "John")
+    customers = List.add(customers, "Jane")
+    print("Size:", List.size(customers))
+    print("First:", List.get(customers, 0))
+    print("")
+    
+    # Map/HashMap
+    print("--- Map/HashMap ---")
+    prices = Map.new()
+    prices = Map.put(prices, "apple", 100)
+    print("Apple:", Map.get(prices, "apple"))
+    print("")
+    
+    # Date/Time
+    print("--- Date/Time ---")
+    now = Date.now()
+    print("Now:", now)
+    formatted = Date.format(now, "dd/MM/yyyy")
+    print("Formatted:", formatted)
+    print("")
+    
+    # Number parsing
+    print("--- Parsing ---")
+    intVal = Integer.parseInt("42069")
+    print("Parsed int:", intVal)
+    floatVal = Double.parseDouble("3.14159")
+    print("Parsed double:", floatVal)
+    print("")
+    
+    # Math
+    print("--- Math ---")
+    print("sqrt(16):", Math.sqrt(16))
+    print("pow(2,10):", Math.pow(2, 10))
+    print("")
+    
+    print("=== All Tests Complete! ===")

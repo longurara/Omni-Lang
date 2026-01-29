@@ -1,0 +1,145 @@
+{
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "Omni",
+    "patterns": [
+        {
+            "include": "#comments"
+        },
+        {
+            "include": "#strings"
+        },
+        {
+            "include": "#keywords"
+        },
+        {
+            "include": "#types"
+        },
+        {
+            "include": "#constants"
+        },
+        {
+            "include": "#functions"
+        },
+        {
+            "include": "#classes"
+        },
+        {
+            "include": "#numbers"
+        },
+        {
+            "include": "#operators"
+        }
+    ],
+    "repository": {
+        "comments": {
+            "patterns": [
+                {
+                    "scopeName": "comment.line.double-slash.omni",
+                    "match": "//.*$"
+                }
+            ]
+        },
+        "strings": {
+            "patterns": [
+                {
+                    "name": "string.quoted.double.omni",
+                    "begin": "\"",
+                    "end": "\"",
+                    "patterns": [
+                        {
+                            "name": "constant.character.escape.omni",
+                            "match": "\\\\."
+                        }
+                    ]
+                }
+            ]
+        },
+        "keywords": {
+            "patterns": [
+                {
+                    "name": "keyword.control.omni",
+                    "match": "\\b(if|elif|else|while|for|return|break|continue|try|catch|finally|throw|in|as)\\b"
+                },
+                {
+                    "name": "keyword.other.omni",
+                    "match": "\\b(def|var|import|new|extends|implements)\\b"
+                },
+                {
+                    "name": "storage.modifier.omni",
+                    "match": "\\b(public|private|protected|static)\\b"
+                },
+                {
+                    "name": "variable.language.omni",
+                    "match": "\\b(self|this)\\b"
+                }
+            ]
+        },
+        "types": {
+            "patterns": [
+                {
+                    "name": "storage.type.omni",
+                    "match": "\\b(int|long|float|double|bool|char|void|String|class|interface)\\b"
+                }
+            ]
+        },
+        "constants": {
+            "patterns": [
+                {
+                    "name": "constant.language.omni",
+                    "match": "\\b(true|false|null)\\b"
+                }
+            ]
+        },
+        "functions": {
+            "patterns": [
+                {
+                    "match": "\\b(def)\\s+([a-zA-Z_]\\w*)",
+                    "captures": {
+                        "1": {
+                            "name": "keyword.other.omni"
+                        },
+                        "2": {
+                            "name": "entity.name.function.omni"
+                        }
+                    }
+                },
+                {
+                    "match": "\\b([a-zA-Z_]\\w*)\\s*(?=\\()",
+                    "name": "support.function.omni"
+                }
+            ]
+        },
+        "classes": {
+            "patterns": [
+                {
+                    "match": "\\b(class|interface)\\s+([a-zA-Z_]\\w*)",
+                    "captures": {
+                        "1": {
+                            "name": "storage.type.omni"
+                        },
+                        "2": {
+                            "name": "entity.name.type.class.omni"
+                        }
+                    }
+                }
+            ]
+        },
+        "numbers": {
+            "patterns": [
+                {
+                    "name": "constant.numeric.omni",
+                    "match": "\\b\\d+(\\.\\d+)?\\b"
+                }
+            ]
+        },
+        "operators": {
+            "patterns": [
+                {
+                    "name": "keyword.operator.omni",
+                    "match": "\\+|-|\\*|/|%|=|==|!=|<|>|<=|>=|&&|\\|\\||!|\\.|\\+\\+|--|\\+=|-="
+                }
+            ]
+        }
+    },
+    "scopeName": "source.omni"
+}

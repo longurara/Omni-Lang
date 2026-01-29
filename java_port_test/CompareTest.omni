@@ -1,0 +1,9 @@
+// Minimal test for comparison
+
+def main():
+    print("Test")
+    x = 10
+    if x > 5:
+        print("Greater")
+    else:
+        print("Less")

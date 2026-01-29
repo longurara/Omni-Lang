@@ -1,0 +1,81 @@
+# Advanced Features Test: Try-Catch, Regex, Serialization
+
+def main():
+    print("=== Advanced Features Test ===")
+    print("")
+    
+    # ========= TRY-CATCH TEST =========
+    print("--- Try-Catch Test ---")
+    
+    try:
+        print("Before throw")
+        throw "Something went wrong!"
+    catch Exception as e:
+        print("Caught:", e)
+    finally:
+        print("Finally block executed")
+    
+    print("Continuing after try-catch")
+    print("")
+    
+    # ========= REGEX TEST =========
+    print("--- Regex Test ---")
+    
+    # Test regex matching
+    email = "test@example.com"
+    emailPattern = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+$"
+    print("Email matches:", Regex.matches(email, emailPattern))
+    
+    # Test regex search
+    text = "Hello 123 World 456"
+    hasDigits = Regex.search(text, "[0-9]+")
+    print("Has digits:", hasDigits)
+    
+    # Test regex find
+    pos = Regex.find(text, "[0-9]+")
+    print("First digit at position:", pos)
+    
+    # Test regex replace
+    replaced = Regex.replace(text, "[0-9]+", "###")
+    print("Replaced:", replaced)
+    
+    # Test findAll
+    allNumbers = Regex.findAll(text, "[0-9]+")
+    print("All numbers found:", List.size(allNumbers))
+    
+    print("")
+    
+    # ========= SERIALIZATION TEST =========
+    print("--- Serialization Test ---")
+    
+    # Create a data object
+    data = Map.new()
+    data = Map.put(data, "name", "John")
+    data = Map.put(data, "age", 25)
+    data = Map.put(data, "active", true)
+    
+    # Convert to JSON
+    json = Serializer.toJSON(data)
+    print("JSON:", json)
+    
+    # Save to JSON file
+    saved = Serializer.saveJSON("test_data.json", data)
+    print("Saved to JSON file:", saved)
+    
+    # Create a list for binary test
+    customers = List.new()
+    customers = List.add(customers, "Alice")
+    customers = List.add(customers, "Bob")
+    customers = List.add(customers, "Charlie")
+    
+    # Save to binary
+    binSaved = Serializer.saveBinary("test_data.bin", customers)
+    print("Saved to binary:", binSaved)
+    
+    # Load from binary
+    loaded = Serializer.loadBinary("test_data.bin")
+    print("Loaded from binary:", List.size(loaded), "items")
+    print("First item:", List.get(loaded, 0))
+    
+    print("")
+    print("=== All Advanced Tests Complete! ===")

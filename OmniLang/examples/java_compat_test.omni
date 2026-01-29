@@ -1,0 +1,62 @@
+# Omni Java Compatibility Test
+
+def main():
+    print("=== Java Compatibility Test ===")
+    print("")
+    
+    # ===== List/ArrayList =====
+    print("--- List/ArrayList ---")
+    customers = List.new()
+    customers = List.add(customers, "John")
+    customers = List.add(customers, "Jane")
+    customers = List.add(customers, "Bob")
+    print("List size:", List.size(customers))
+    print("First item:", List.get(customers, 0))
+    print("Contains Jane:", List.contains(customers, "Jane"))
+    print("Contains Tom:", List.contains(customers, "Tom"))
+    print("")
+    
+    # ===== Map/HashMap =====
+    print("--- Map/HashMap ---")
+    prices = Map.new()
+    prices = Map.put(prices, "apple", 100)
+    prices = Map.put(prices, "banana", 50)
+    prices = Map.put(prices, "orange", 75)
+    print("Apple price:", Map.get(prices, "apple"))
+    print("Has banana:", Map.containsKey(prices, "banana"))
+    print("Has grape:", Map.containsKey(prices, "grape"))
+    print("")
+    
+    # ===== String.format =====
+    print("--- String.format ---")
+    name = "John Doe"
+    age = 25
+    print(String.format("Name: %-20s Age: %d", name, age))
+    print("")
+    
+    # ===== Date/Time =====
+    print("--- Date/Time ---")
+    now = Date.now()
+    print("Current timestamp:", now)
+    print("Formatted date:", Date.format(now, "dd/MM/yyyy"))
+    print("")
+    
+    # ===== Integer/Double Parse =====
+    print("--- Number Parsing ---")
+    numStr = "12345"
+    floatStr = "3.14159"
+    print("Parsed int:", Integer.parseInt(numStr))
+    print("Parsed double:", Double.parseDouble(floatStr))
+    print("")
+    
+    # ===== String utilities =====
+    print("--- String Utilities ---")
+    str1 = "Hello"
+    str2 = "hello"
+    print("isEmpty empty:", String.isEmpty(""))
+    print("isEmpty test:", String.isEmpty("test"))
+    print("equals Hello Hello:", String.equals(str1, "Hello"))
+    print("equalsIgnoreCase Hello hello:", String.equalsIgnoreCase(str1, str2))
+    print("")
+    
+    print("=== All Tests Complete! ===")

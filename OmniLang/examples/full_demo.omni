@@ -1,0 +1,102 @@
+# Omni Language Full Demo
+# This demo showcases all major features
+
+def factorial(n: int):
+    if n <= 1:
+        return 1
+    return n * factorial(n - 1)
+
+def fibonacci(n: int):
+    if n <= 1:
+        return n
+    a = 0
+    b = 1
+    i = 2
+    while i <= n:
+        temp = a + b
+        a = b
+        b = temp
+        i = i + 1
+    return b
+
+class Calculator:
+    String name
+    
+    def __init__(self, name: String):
+        self.name = name
+    
+    def add(self, a: int, b: int):
+        return a + b
+    
+    def multiply(self, a: int, b: int):
+        return a * b
+
+def main():
+    print("=== Omni Language Full Demo ===")
+    print("")
+    
+    # Basic arithmetic
+    print("--- Basic Math ---")
+    x = 10
+    y = 3
+    print("x =", x, ", y =", y)
+    print("x + y =", x + y)
+    print("x - y =", x - y)
+    print("x * y =", x * y)
+    print("x / y =", x / y)
+    print("")
+    
+    # Math library
+    print("--- Math Library ---")
+    print("Math.sqrt(25) =", Math.sqrt(25))
+    print("Math.pow(2, 8) =", Math.pow(2, 8))
+    print("Math.abs(-42) =", Math.abs(-42))
+    print("Math.max(10, 20) =", Math.max(10, 20))
+    print("Math.min(10, 20) =", Math.min(10, 20))
+    print("Math.sin(0) =", Math.sin(0))
+    print("Math.cos(0) =", Math.cos(0))
+    print("")
+    
+    # String operations
+    print("--- String Operations ---")
+    name = "Omni Language"
+    print("name =", name)
+    print("len(name) =", len(name))
+    print("")
+    
+    # Control flow
+    print("--- Control Flow ---")
+    num = 7
+    if num > 5:
+        print(num, "is greater than 5")
+    else:
+        print(num, "is not greater than 5")
+    
+    # Loops with range
+    print("--- Loops ---")
+    print("Counting from 0 to 4:")
+    for i in range(5):
+        print("  i =", i)
+    print("")
+    
+    # Recursion
+    print("--- Recursion ---")
+    print("factorial(5) =", factorial(5))
+    print("factorial(10) =", factorial(10))
+    print("")
+    
+    # Iteration
+    print("--- Fibonacci ---")
+    print("fibonacci(10) =", fibonacci(10))
+    print("fibonacci(20) =", fibonacci(20))
+    print("")
+    
+    # OOP
+    print("--- OOP Demo ---")
+    calc = new Calculator("MyCalc")
+    print("Calculator name:", calc.name)
+    print("calc.add(5, 3) =", calc.add(5, 3))
+    print("calc.multiply(4, 7) =", calc.multiply(4, 7))
+    print("")
+    
+    print("=== Demo Complete! ===")

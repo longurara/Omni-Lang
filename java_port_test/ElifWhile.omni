@@ -1,0 +1,19 @@
+// Test elif inside while loop
+
+def main():
+    print("Test while+elif")
+    running = 1
+    while running == 1:
+        print("1. Option A")
+        print("2. Option B")
+        print("3. Exit")
+        c = input("Choice: ")
+        if c == "1":
+            print("A!")
+        elif c == "2":
+            print("B!")
+        elif c == "3":
+            print("Bye")
+            running = 0
+        else:
+            print("Invalid")

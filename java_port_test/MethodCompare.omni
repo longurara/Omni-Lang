@@ -1,0 +1,9 @@
+// Test method call in comparison
+
+def main():
+    print("Test")
+    name = "Hello"
+    if String.length(name) > 3:
+        print("Long")
+    else:
+        print("Short")

@@ -1,0 +1,19 @@
+// Test Serializer save/load
+
+def main():
+    print("Test Serializer")
+    
+    data = List.new()
+    
+    item1 = Map.new()
+    item1 = Map.put(item1, "id", "001")
+    item1 = Map.put(item1, "name", "Test")
+    data = List.add(data, item1)
+    
+    print("Saving to test.json...")
+    Serializer.saveJSON("test.json", data)
+    print("Done!")
+    
+    print("Loading from test.json...")
+    loaded = Serializer.loadJSON("test.json")
+    print("Loaded data type:", loaded)

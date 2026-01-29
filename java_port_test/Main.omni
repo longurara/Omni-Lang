@@ -1,0 +1,270 @@
+// =====================================================================
+// TRADITIONAL FEAST ORDER MANAGEMENT - Omni Port
+// Full version with all 9 menu options
+// =====================================================================
+
+def main():
+    print("===============================================")
+    print("  TRADITIONAL FEAST ORDER MANAGEMENT SYSTEM")
+    print("===============================================")
+    print("")
+    
+    // ============= SET MENUS DATA =============
+    menus = List.new()
+    
+    m1 = Map.new()
+    m1 = Map.put(m1, "id", "PW001")
+    m1 = Map.put(m1, "name", "Wedding party 01")
+    m1 = Map.put(m1, "price", 3750000)
+    menus = List.add(menus, m1)
+    
+    m2 = Map.new()
+    m2 = Map.put(m2, "id", "PW002")
+    m2 = Map.put(m2, "name", "Company year end party")
+    m2 = Map.put(m2, "price", 2085000)
+    menus = List.add(menus, m2)
+    
+    m3 = Map.new()
+    m3 = Map.put(m3, "id", "PW003")
+    m3 = Map.put(m3, "name", "Birthday Party 01")
+    m3 = Map.put(m3, "price", 1850000)
+    menus = List.add(menus, m3)
+    
+    m4 = Map.new()
+    m4 = Map.put(m4, "id", "PW004")
+    m4 = Map.put(m4, "name", "Wedding party 02")
+    m4 = Map.put(m4, "price", 3550000)
+    menus = List.add(menus, m4)
+    
+    m5 = Map.new()
+    m5 = Map.put(m5, "id", "PW005")
+    m5 = Map.put(m5, "name", "Birthday Party 02")
+    m5 = Map.put(m5, "price", 2250000)
+    menus = List.add(menus, m5)
+    
+    m6 = Map.new()
+    m6 = Map.put(m6, "id", "PW006")
+    m6 = Map.put(m6, "name", "Meeting Party")
+    m6 = Map.put(m6, "price", 1950000)
+    menus = List.add(menus, m6)
+    
+    // ============= CUSTOMER AND ORDER DATA =============
+    customers = List.new()
+    orders = List.new()
+    
+    // Load from JSON files
+    custData = Serializer.loadJSON("data/customers.json")
+    if custData != null:
+        customers = custData
+    
+    ordData = Serializer.loadJSON("data/orders.json")
+    if ordData != null:
+        orders = ordData
+    
+    print("Loaded", List.size(menus), "menus,", List.size(customers), "customers,", List.size(orders), "orders")
+    print("")
+    
+    // ============= MAIN MENU LOOP =============
+    running = 1
+    while running == 1:
+        print("==================== MENU ====================")
+        print("  1. Register a customer")
+        print("  2. Update customer information")
+        print("  3. Search customer by name")
+        print("  4. Display set menus")
+        print("  5. Place a feast order")
+        print("  6. Update order information")
+        print("  7. Save data to files")
+        print("  8. Display lists")
+        print("  9. Exit")
+        print("==============================================")
+        
+        choice = input("Enter choice: ")
+        
+        // Option 1: Register Customer
+        if choice == "1":
+            print("")
+            print("---------- REGISTER CUSTOMER ----------")
+            id = input("Customer code (C/G/K + 4 digits): ")
+            name = input("Name (2-25 chars): ")
+            phone = input("Phone (0 + 9 digits): ")
+            email = input("Email: ")
+            
+            c = Map.new()
+            c = Map.put(c, "id", id)
+            c = Map.put(c, "name", name)
+            c = Map.put(c, "phone", phone)
+            c = Map.put(c, "email", email)
+            customers = List.add(customers, c)
+            print("*** Customer registered! ***")
+            print("")
+            
+        // Option 2: Update Customer
+        elif choice == "2":
+            print("")
+            print("---------- UPDATE CUSTOMER ----------")
+            id = input("Enter customer code to update: ")
+            found = null
+            idx = 0
+            while idx < List.size(customers):
+                c = List.get(customers, idx)
+                cid = Map.get(c, "id")
+                if String.equalsIgnoreCase(cid, id):
+                    found = c
+                idx = idx + 1
+            if found == null:
+                print("Customer not found!")
+            else:
+                print("Current:", Map.get(found, "id"), "|", Map.get(found, "name"))
+                newName = input("New name (Enter to skip): ")
+                if String.length(newName) > 0:
+                    found = Map.put(found, "name", newName)
+                newPhone = input("New phone (Enter to skip): ")
+                if String.length(newPhone) > 0:
+                    found = Map.put(found, "phone", newPhone)
+                print("*** Customer updated! ***")
+            print("")
+            
+        // Option 3: Search Customer
+        elif choice == "3":
+            print("")
+            print("---------- SEARCH CUSTOMER ----------")
+            search = input("Enter name to search: ")
+            search = String.toLowerCase(search)
+            count = 0
+            i = 0
+            while i < List.size(customers):
+                c = List.get(customers, i)
+                cname = String.toLowerCase(Map.get(c, "name"))
+                if String.contains(cname, search):
+                    print(Map.get(c, "id"), "|", Map.get(c, "name"), "|", Map.get(c, "phone"))
+                    count = count + 1
+                i = i + 1
+            if count == 0:
+                print("No matching customers!")
+            print("")
+            
+        // Option 4: Display Menus
+        elif choice == "4":
+            print("")
+            print("---------- SET MENUS ----------")
+            print("--------------------------------------------------")
+            i = 0
+            while i < List.size(menus):
+                m = List.get(menus, i)
+                print(Map.get(m, "id"), "-", Map.get(m, "name"), ":", Map.get(m, "price"), "VND")
+                i = i + 1
+            print("--------------------------------------------------")
+            print("")
+            
+        // Option 5: Place Order
+        elif choice == "5":
+            print("")
+            print("---------- PLACE ORDER ----------")
+            custId = input("Customer code: ")
+            menuId = input("Menu code: ")
+            tablesStr = input("Number of tables: ")
+            eventDate = input("Event date (dd/MM/yyyy): ")
+            
+            numTables = Integer.parseInt(tablesStr)
+            menuPrice = 0
+            j = 0
+            while j < List.size(menus):
+                m = List.get(menus, j)
+                mid = Map.get(m, "id")
+                if String.equalsIgnoreCase(mid, menuId):
+                    menuPrice = Map.get(m, "price")
+                j = j + 1
+            
+            orderID = Date.format(Date.now(), "yyyyMMddHHmmss")
+            totalCost = menuPrice * numTables
+            
+            order = Map.new()
+            order = Map.put(order, "orderID", orderID)
+            order = Map.put(order, "customerId", custId)
+            order = Map.put(order, "menuID", menuId)
+            order = Map.put(order, "numOfTables", numTables)
+            order = Map.put(order, "eventDate", eventDate)
+            order = Map.put(order, "price", menuPrice)
+            orders = List.add(orders, order)
+            
+            print("")
+            print("Order placed! ID:", orderID)
+            print("Total cost:", totalCost, "VND")
+            print("")
+            
+        // Option 6: Update Order
+        elif choice == "6":
+            print("")
+            print("---------- UPDATE ORDER ----------")
+            orderId = input("Enter order ID: ")
+            found = null
+            idx = 0
+            while idx < List.size(orders):
+                o = List.get(orders, idx)
+                oid = Map.get(o, "orderID")
+                if oid == orderId:
+                    found = o
+                idx = idx + 1
+            if found == null:
+                print("Order not found!")
+            else:
+                print("Current:", Map.get(found, "orderID"))
+                newDate = input("New event date (Enter to skip): ")
+                if String.length(newDate) > 0:
+                    found = Map.put(found, "eventDate", newDate)
+                print("*** Order updated! ***")
+            print("")
+            
+        // Option 7: Save Data
+        elif choice == "7":
+            print("")
+            print("---------- SAVE DATA ----------")
+            Serializer.saveJSON("data/customers.json", customers)
+            Serializer.saveJSON("data/orders.json", orders)
+            print("Data saved!")
+            print("")
+            
+        // Option 8: Display Lists
+        elif choice == "8":
+            print("")
+            print("---------- DISPLAY LISTS ----------")
+            print("1. Customers")
+            print("2. Orders")
+            sub = input("Choose: ")
+            if sub == "1":
+                print("")
+                print("--- Customers ---")
+                i = 0
+                while i < List.size(customers):
+                    c = List.get(customers, i)
+                    print(Map.get(c, "id"), "|", Map.get(c, "name"), "|", Map.get(c, "phone"))
+                    i = i + 1
+                if List.size(customers) == 0:
+                    print("No customers.")
+            elif sub == "2":
+                print("")
+                print("--- Orders ---")
+                i = 0
+                while i < List.size(orders):
+                    o = List.get(orders, i)
+                    print(Map.get(o, "orderID"), "|", Map.get(o, "customerId"), "|", Map.get(o, "menuID"))
+                    i = i + 1
+                if List.size(orders) == 0:
+                    print("No orders.")
+            print("")
+            
+        // Option 9: Exit
+        elif choice == "9":
+            save = input("Save before exit? (Y/N): ")
+            if String.equalsIgnoreCase(save, "Y"):
+                Serializer.saveJSON("data/customers.json", customers)
+                Serializer.saveJSON("data/orders.json", orders)
+                print("Data saved!")
+            print("Goodbye!")
+            running = 0
+            
+        // Invalid choice
+        else:
+            print("Invalid choice!")
+            print("")

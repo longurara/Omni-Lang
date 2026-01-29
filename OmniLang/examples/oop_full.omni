@@ -1,0 +1,50 @@
+# Full OOP Demo with Classes, Inheritance, Interfaces
+
+import Math
+
+# Interface
+interface Drawable:
+    def draw(self)
+
+# Base class
+class Shape:
+    String name
+    
+    def __init__(self, n: String):
+        self.name = n
+    
+    def describe(self):
+        print("Shape: " + self.name)
+
+# Inheritance + Interface
+class Circle(Shape) implements Drawable:
+    double radius
+    
+    def __init__(self, r: double):
+        self.radius = r
+    
+    def draw(self):
+        print("Drawing circle")
+    
+    def getArea(self):
+        return 3.14159 * self.radius * self.radius
+
+class Rectangle(Shape):
+    double width
+    double height
+    
+    def __init__(self, w: double, h: double):
+        self.width = w
+        self.height = h
+    
+    def getArea(self):
+        return self.width * self.height
+
+# Main
+def main():
+    c = new Circle(5.0)
+    c.draw()
+    
+    r = new Rectangle(10.0, 20.0)
+    area = r.getArea()
+    print("Done!")

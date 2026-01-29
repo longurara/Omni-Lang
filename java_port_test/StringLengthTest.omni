@@ -1,0 +1,11 @@
+// Test String.length comparison
+
+def main():
+    print("Test")
+    name = input("Enter name: ")
+    len = String.length(name)
+    print("Length:", len)
+    if len > 3:
+        print("Long name")
+    else:
+        print("Short name")
