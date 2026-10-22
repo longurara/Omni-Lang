@@ -3,9 +3,6 @@ project(OmniLang)
 
 set(CMAKE_CXX_STANDARD 17)
 
-# Include directories
-include_directories(src)
-
 # Source files
 set(SOURCES
     src/main.cpp
