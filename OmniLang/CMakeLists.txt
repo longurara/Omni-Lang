@@ -12,3 +12,8 @@ set(SOURCES
 
 # Executable
 add_executable(omni ${SOURCES})
+
+# Keep <windows.h> from defining min/max macros that break std::min/std::max
+if(WIN32)
+    target_compile_definitions(omni PRIVATE NOMINMAX)
+endif()
