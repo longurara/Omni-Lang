@@ -1,0 +1,109 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build & test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    defaults:
+      run:
+        shell: bash
+        working-directory: OmniLang
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      - name: Locate binary
+        run: |
+          bin=$(find build -type f \( -name omni -o -name omni.exe \) | head -n1)
+          test -n "$bin" || { echo "omni binary not found"; exit 1; }
+          echo "OMNI=$PWD/$bin" >> "$GITHUB_ENV"
+
+      - name: Smoke test
+        run: |
+          "$OMNI" --help
+          "$OMNI" --tokens examples/hello.omni
+          "$OMNI" --ast examples/hello.omni
+
+      - name: Run examples
+        env:
+          # Examples using syntax the interpreter does not support yet
+          # (for-in-range, interface method signatures, `import Math`).
+          # Remove an entry once it runs cleanly.
+          KNOWN_FAILURES: >-
+            examples/full_demo.omni
+            examples/oop_demo.omni
+            examples/oop_full.omni
+        run: |
+          failed=0
+          for f in examples/*.omni; do
+            echo "::group::$f"
+            if "$OMNI" "$f" < /dev/null; then
+              ok=1
+            else
+              ok=0
+            fi
+            echo "::endgroup::"
+            if [[ " $KNOWN_FAILURES " == *" $f "* ]]; then
+              if [ $ok = 1 ]; then
+                echo "::notice file=OmniLang/$f::$f now passes - remove it from KNOWN_FAILURES"
+              else
+                echo "::warning file=OmniLang/$f::$f fails (known)"
+              fi
+            elif [ $ok = 0 ]; then
+              echo "::error file=OmniLang/$f::$f failed"
+              failed=1
+            fi
+          done
+          exit $failed
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: omni-${{ matrix.os }}
+          path: ${{ env.OMNI }}
+
+  vscode-extension:
+    name: VS Code extension
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: OmniLang/vscode-omni
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Validate JSON files
+        run: |
+          for f in package.json language-configuration.json syntaxes/omni.tmLanguage.json snippets/omni.code-snippets; do
+            node -e "JSON.parse(require('fs').readFileSync('$f','utf8'))" && echo "ok  $f"
+          done
+
+      - name: Check extension.js syntax
+        run: node --check extension.js
+
+      - name: Package extension
+        run: npx --yes @vscode/vsce@3 package --allow-missing-repository -o vscode-omni.vsix
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vscode-omni
+          path: OmniLang/vscode-omni/vscode-omni.vsix
